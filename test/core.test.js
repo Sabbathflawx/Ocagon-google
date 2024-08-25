@@ -740,22 +740,29 @@ describe('core', () => {
       await promise
     })
 
-    test('restores previous cwd', async () => {
+    test('keeps the cwd ref for internal $ calls', async () => {
       let resolve, reject
       let promise = new Promise((...args) => ([resolve, reject] = args))
-
+      let cwd = process.cwd()
       let pwd = await $`pwd`
 
       within(async () => {
         cd('/tmp')
+        assert.ok(process.cwd().endsWith('/tmp'))
+        assert.ok((await $`pwd`).stdout.trim().endsWith('/tmp'))
+
         setTimeout(async () => {
+          assert.equal(process.cwd(), '/')
           assert.ok((await $`pwd`).stdout.trim().endsWith('/tmp'))
           resolve()
         }, 1000)
       })
 
+      setTimeout(async () => cd('/'), 500)
+
       assert.equal((await $`pwd`).stdout, pwd.stdout)
       await promise
+      assert.equal((await $`pwd`).stdout.trim(), '/')
     })
 
     test(`isolates nested context and returns cb result`, async () => {
