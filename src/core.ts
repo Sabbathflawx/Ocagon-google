@@ -41,11 +41,12 @@ import {
   exitCodeInfo,
   formatCmd,
   getCallerLocation,
+  isString,
   noop,
   parseDuration,
+  preferNmBin,
   quote,
   quotePowerShell,
-  preferNmBin,
 } from './util.js'
 
 export interface Shell {
@@ -283,7 +284,7 @@ export class ProcessPromise extends Promise<ProcessOutput> {
       cwd: $.cwd ?? $[processCwd],
       ac: $.ac,
       signal: $.signal,
-      shell: typeof $.shell === 'string' ? $.shell : true,
+      shell: isString($.shell) ? $.shell : true,
       env: $.env,
       spawn: $.spawn,
       spawnSync: $.spawnSync,
@@ -445,7 +446,7 @@ export class ProcessPromise extends Promise<ProcessOutput> {
   }
 
   pipe(dest: Writable | ProcessPromise): ProcessPromise {
-    if (typeof dest === 'string')
+    if (isString(dest))
       throw new Error('The pipe() method does not take strings. Forgot $?')
     if (this._resolved) {
       if (dest instanceof ProcessPromise) dest.stdin.end() // In case of piped stdin, we may want to close stdin of dest as well.
